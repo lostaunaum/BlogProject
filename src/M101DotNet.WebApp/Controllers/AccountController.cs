@@ -8,7 +8,6 @@ using System.Web.Mvc;
 using MongoDB.Driver;
 using M101DotNet.WebApp.Models;
 using M101DotNet.WebApp.Models.Account;
-using MongoDB.Bson;
 
 namespace M101DotNet.WebApp.Controllers
 {
@@ -35,12 +34,7 @@ namespace M101DotNet.WebApp.Controllers
             }
 
             var blogContext = new BlogContext();
-            // XXX WORK HERE
-            // fetch a user by the email in model.Email
-            var userCollection = blogContext.Users;
-            var filter = Builders<User>.Filter.Where(x => x.Email == model.Email);
-            var user = await userCollection.Find(filter).FirstOrDefaultAsync();
-
+            var user = await blogContext.Users.Find(x => x.Email == model.Email).SingleOrDefaultAsync();
             if (user == null)
             {
                 ModelState.AddModelError("Email", "Email address has not been registered.");
@@ -87,15 +81,13 @@ namespace M101DotNet.WebApp.Controllers
             }
 
             var blogContext = new BlogContext();
-            // XXX WORK HERE
-            // create a new user and insert it into the database
-            User userObject = new User();
-            userObject.Name = model.Name;
-            userObject.Email = model.Email;
+            var user = new User
+            {
+                Name = model.Name,
+                Email = model.Email
+            };
 
-            var userCollection = blogContext.Users;
-            var user = userCollection.InsertOneAsync(userObject);
-
+            await blogContext.Users.InsertOneAsync(user);
             return RedirectToAction("Index", "Home");
         }
 
